@@ -1,6 +1,6 @@
 import HttpLoggerMiddleware from './http-logger.middleware';
 import { Inject, Logger, Injectable } from '@nestjs/common';
-import { CLICKHOUSE_ASYNC_INSTANCE_TOKEN, ClickHouseClient } from '@depyronick/nestjs-clickhouse';
+// import { CLICKHOUSE_ASYNC_INSTANCE_TOKEN, ClickHouseClient } from '@depyronick/nestjs-clickhouse';
 import { NextFunction, Request, Response } from 'express';
 import ApiConfig from '../../config/api.config';
 import { ConfigType } from '@nestjs/config';
@@ -28,9 +28,6 @@ export class DbHttpLoggerMiddleware extends HttpLoggerMiddleware {
   protected logger = new Logger(`DB_HTTP`);
 
   constructor(
-    @Inject(CLICKHOUSE_ASYNC_INSTANCE_TOKEN)
-    private readonly logConnection: ClickHouseClient,
-
     @Inject(ApiConfig.KEY)
     private apiConfig: ConfigType<typeof ApiConfig>,
   ) {
@@ -65,12 +62,7 @@ export class DbHttpLoggerMiddleware extends HttpLoggerMiddleware {
           summary,
         };
 
-        this.logConnection
-          .insertPromise<HttpLog>('http_logs_buffer', [log])
-          .then(() => true)
-          .catch((error) => {
-            this.logger.error('Inserting log broke', error);
-          });
+        console.log(log);
       });
     }
 

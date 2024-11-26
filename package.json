@@ -14,10 +14,6 @@
     "type": "git",
     "url": "git+https://github.com/TMCB-SPACE/nestjs-realworld-price-collector-app.git"
   },
-  "engines": {
-    "node": ">= 21",
-    "npm": ">= 10"
-  },
   "scripts": {
     "preinstall": "npx @tmcb/check-engines",
     "prestart": "npx @tmcb/check-engines",

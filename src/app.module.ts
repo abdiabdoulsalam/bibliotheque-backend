@@ -10,50 +10,44 @@ import { clc } from '@nestjs/common/utils/cli-colors.util';
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthModule } from './health/health.module';
 import { HttpModule } from '@nestjs/axios';
-import { DbCurrency } from './currency/entities/currency.entity';
-import { CurrencyModule } from './currency/currency.module';
-import { DbExchangeRate } from './currency/entities/exchange-rate.entity';
-import { ClickHouseModule } from '@depyronick/nestjs-clickhouse';
+// import { ClickHouseModule } from '@depyronick/nestjs-clickhouse';
 import LogConfig from './config/log.config';
 import { DbHttpLoggerMiddleware } from './common/middleware/db-http-logger.middleware';
-import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-ioredis-yet';
+// import { redisStore } from 'cache-manager-ioredis-yet';
 import CacheConfig from './config/cache.config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
-    CacheModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          connectionName: 'CacheConnection',
-          host: configService.get('cache.host'),
-          port: configService.get('cache.port'),
-          username: configService.get('cache.username'),
-          password: configService.get('cache.password'),
-          ttl: configService.get('cache.ttl'),
-        }),
-        max: configService.get('cache.max'),
-      }),
-      isGlobal: true,
-      inject: [ConfigService],
-    }),
-    ClickHouseModule.registerAsync({
-      useFactory: (configService: ConfigService) => ({
-        host: configService.get('log.host'),
-        port: configService.get('log.port'),
-        username: configService.get('log.username'),
-        password: configService.get('log.password'),
-        database: configService.get('log.database'),
-      }),
-      inject: [ConfigService],
-    }),
+    // CacheModule.registerAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     store: await redisStore({
+    //       connectionName: 'CacheConnection',
+    //       host: configService.get('cache.host'),
+    //       port: configService.get('cache.port'),
+    //       username: configService.get('cache.username'),
+    //       password: configService.get('cache.password'),
+    //       ttl: configService.get('cache.ttl'),
+    //     }),
+    //     max: configService.get('cache.max'),
+    //   }),
+    //   isGlobal: true,
+    //   inject: [ConfigService],
+    // }),
+    // ClickHouseModule.registerAsync({
+    //   useFactory: (configService: ConfigService) => ({
+    //     host: configService.get('log.host'),
+    //     port: configService.get('log.port'),
+    //     username: configService.get('log.username'),
+    //     password: configService.get('log.password'),
+    //     database: configService.get('log.database'),
+    //   }),
+    //   inject: [ConfigService],
+    // }),
     ConfigModule.forRoot({
       load: [ApiConfig, CacheConfig, DbConfig, LogConfig],
       isGlobal: true,
     }),
-    CurrencyModule,
     HealthModule,
     HttpModule,
     LoggerModule.forRootAsync({
@@ -95,7 +89,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
           password: configService.get('db.password'),
           database: configService.get('db.database'),
           autoLoadEntities: false,
-          entities: [DbCurrency, DbExchangeRate],
+          entities: [],
           synchronize: false,
           logger: configService.get('api.test') ? false : new DatabaseLoggerMiddleware('DB'),
           maxQueryExecutionTime: configService.get('db.maxQueryExecutionTime'),
@@ -104,12 +98,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     }),
   ],
   controllers: [],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
-    },
-  ],
+  providers: [],
 })
 export class AppModule {
   constructor(
