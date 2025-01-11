@@ -14,10 +14,21 @@ import { HttpModule } from '@nestjs/axios';
 import LogConfig from './config/log.config';
 import { DbHttpLoggerMiddleware } from './common/middleware/db-http-logger.middleware';
 // import { redisStore } from 'cache-manager-ioredis-yet';
+import { UsersModule } from './users/users.module';
 import CacheConfig from './config/cache.config';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './common/guards/auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
+import { MailerConfig } from './config/mailer-config';
+import { SecretConfig } from './config/secret.config';
+import { JwtConfigModule } from './jwt/jwt.module';
+import { AuthModule } from './auth/auth.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { join } from 'path';
 
 @Module({
   imports: [
+    AuthModule,
     // CacheModule.registerAsync({
     //   imports: [ConfigModule],
     //   useFactory: async (configService: ConfigService) => ({
@@ -45,11 +56,12 @@ import CacheConfig from './config/cache.config';
     //   inject: [ConfigService],
     // }),
     ConfigModule.forRoot({
-      load: [ApiConfig, CacheConfig, DbConfig, LogConfig],
+      load: [ApiConfig, CacheConfig, DbConfig, LogConfig, MailerConfig, SecretConfig],
       isGlobal: true,
     }),
     HealthModule,
     HttpModule,
+    JwtConfigModule,
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -74,6 +86,31 @@ import CacheConfig from './config/cache.config';
         exclude: [{ method: RequestMethod.ALL, path: 'check' }],
       }),
     }),
+    MailerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        return {
+          transport: {
+            host: configService.get<string>('mailer.host'),
+            port: configService.get<string>('mailer.port'),
+            secure: configService.get<boolean>('mailer.secure'),
+            auth: {
+              user: configService.get<string>('mailer.auth.user'),
+              pass: configService.get<string>('mailer.auth.pass'),
+            },
+          },
+          defaults: {
+            from: '"No Reply" <no-reply@gmail.com>',
+          },
+          template: {
+            dir: join(__dirname, './templates'),
+            options: {
+              strict: true,
+            },
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
     TerminusModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -89,16 +126,26 @@ import CacheConfig from './config/cache.config';
           password: configService.get('db.password'),
           database: configService.get('db.database'),
           autoLoadEntities: false,
-          entities: [],
-          synchronize: false,
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: true,
           logger: configService.get('api.test') ? false : new DatabaseLoggerMiddleware('DB'),
           maxQueryExecutionTime: configService.get('db.maxQueryExecutionTime'),
         }) as TypeOrmModuleOptions,
       inject: [ConfigService],
     }),
+    UsersModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {
   constructor(

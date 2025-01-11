@@ -1,54 +1,45 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { ClassSerializerInterceptor, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import fastifyHelmet from '@fastify/helmet';
-import fastifyRateLimit from '@fastify/rate-limit';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { AppModule } from './app.module';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ logger: false }), {
-    bufferLogs: true,
+  const app = await NestFactory.create(AppModule, {
     rawBody: true,
+    bufferLogs: true,
   });
   const configService = app.get(ConfigService);
- 
 
   app.useLogger(app.get(Logger));
   app.flushLogs();
-  app.enableCors();
+  app.enableCors({
+    // TODO: move to environment variables
+    origin: ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    // TODO: learn more on http exposed headers
+    // exposedHeaders
+  });
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: String('1'),
   });
 
-  await app.register(fastifyHelmet, { contentSecurityPolicy: false });
-  await app.register(fastifyRateLimit, {
-    global: true,
-    max: 500000,
-    timeWindow: '1 hour',
-    enableDraftSpec: false,
-    addHeadersOnExceeding: {
-      'x-ratelimit-limit': true,
-      'x-ratelimit-remaining': true,
-      'x-ratelimit-reset': true,
-    },
-    addHeaders: {
-      'x-ratelimit-limit': true,
-      'x-ratelimit-remaining': true,
-      'x-ratelimit-reset': true,
-      'retry-after': true,
-    },
-  });
+  app.use(cookieParser());
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       forbidUnknownValues: true,
+      whitelist: true,
+      skipMissingProperties: false,
     }),
   );
 
-  await app.listen(Number(configService.get('api.port')), configService.get('api.host'));
+  await app.listen(String(configService.get('api.port')), configService.get('api.host'));
 }
 
 void bootstrap();
