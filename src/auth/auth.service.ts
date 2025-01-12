@@ -11,6 +11,7 @@ import { UpdatePassword } from './dto/update-password.dto';
 import { MailDto } from './dto/mail.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ResetPasswordDto } from './dto/request-reset-code.dto';
+import { errors } from '~/common/util/error-messages';
 
 @Injectable()
 export class AuthService {
@@ -56,11 +57,11 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.usersService.findByUserEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException(errors.auth.invalid_credentials);
     }
 
     if (!(await this.jwtConfigService.bcryptCompare(password, user.password))) {
-      throw new BadRequestException('Invalid email or password');
+      throw new BadRequestException(errors.auth.invalid_password);
     }
     const jwt = await this.jwtConfigService.signAsync({ id: user.id });
 
@@ -111,11 +112,11 @@ export class AuthService {
     const code = this.generateResetCode();
     const { email } = mailDto;
     if (!email) {
-      throw new BadRequestException('Email is required');
+      throw new BadRequestException(errors.user.email_not_found);
     }
     const user = await this.usersService.findByUserEmail(email);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(errors.user.not_found);
     }
     user.code = code;
     user.is_code_used = false;
@@ -134,18 +135,18 @@ export class AuthService {
     const { email, password, code, confirm_password } = resetPasswordDto;
     const user = await this.usersService.findByUserEmail(email);
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException(errors.user.not_found);
 
     if (user.is_code_used) {
-      throw new BadRequestException('Code already used');
+      throw new BadRequestException(errors.auth.code_used);
     }
 
     if (user.code !== code) {
-      throw new BadRequestException('Invalid code');
+      throw new BadRequestException(errors.auth.invalid_code);
     }
 
     if (password !== confirm_password) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException(errors.auth.invalid_password);
     }
 
     const hashedPassword = await this.jwtConfigService.bcryptHash(password);
