@@ -22,4 +22,8 @@ export const errors = {
   session: {
     jwt: 'Token manquant, expiré ou invalide',
   },
+  post: {
+    not_found: 'Post introuvable',
+    unauthorized_action: 'Action non autorisée',
+  },
 } as const;

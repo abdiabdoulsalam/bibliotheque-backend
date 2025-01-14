@@ -25,6 +25,8 @@ import { JwtConfigModule } from './jwt/jwt.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
+import { PostsModule } from './posts/posts.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -111,6 +113,7 @@ import { join } from 'path';
       },
       inject: [ConfigService],
     }),
+    PostsModule,
     TerminusModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -134,6 +137,7 @@ import { join } from 'path';
       inject: [ConfigService],
     }),
     UsersModule,
+    CommentsModule,
   ],
   controllers: [],
   providers: [

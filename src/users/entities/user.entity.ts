@@ -1,6 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ROLE } from 'src/common/enums/role.enum';
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { CommentEntity } from '~/comments/entities/comment.entity';
+import { PostEntity } from '~/posts/entities/post.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -58,6 +68,22 @@ export class UserEntity extends BaseEntity {
   })
   @Column({ type: 'boolean', default: false })
   is_code_used: boolean;
+
+  @ApiProperty({
+    description: 'Liste des orders',
+    type: () => [PostEntity],
+    isArray: true,
+  })
+  @OneToMany(() => PostEntity, (post) => post.user)
+  posts: PostEntity[];
+
+  @ApiProperty({
+    description: 'Liste des orders',
+    type: () => [CommentEntity],
+    isArray: true,
+  })
+  @OneToMany(() => CommentEntity, (comment) => comment.user)
+  comment: CommentEntity[];
 
   @ApiProperty({
     description: 'Date de creation de la personne',

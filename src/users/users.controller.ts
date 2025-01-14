@@ -26,11 +26,11 @@ export class UsersController {
     await this.usersService.update(id, updateUserDto);
   }
 
-  @Get(':id')
-  @Roles(ROLE.ADMIN)
+  @Patch('update-profile')
+  @Roles(ROLE.USER, ROLE.ADMIN)
   @ApiResponse({})
-  async findOne(@Param('id') id: string) {
-    return await this.usersService.findOne(id);
+  async updateProfile(@User() user: RequestWithUser['user'], @Body() updateUserDto: UpdateUserDto) {
+    return await this.usersService.updateProfile(user, updateUserDto);
   }
 
   @Patch('update-user/:id')
@@ -40,18 +40,18 @@ export class UsersController {
     return await this.usersService.update(id, updateUserDto);
   }
 
-  @Patch('update-profile')
-  @Roles(ROLE.USER, ROLE.ADMIN)
-  @ApiResponse({})
-  async updateProfile(@User() user: RequestWithUser['user'], @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.updateProfile(user, updateUserDto);
-  }
-
   @Delete(':id')
   @Roles(ROLE.ADMIN)
   @ApiResponse({})
   async delete(@Param('id') id: string) {
     await this.usersService.delete(id);
     return { message: 'user deleted successfully' };
+  }
+
+  @Get(':id')
+  @Roles(ROLE.ADMIN)
+  @ApiResponse({})
+  async findOne(@Param('id') id: string) {
+    return await this.usersService.findOne(id);
   }
 }
