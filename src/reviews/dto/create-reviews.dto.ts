@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Max, Min } from 'class-validator';
 
-export class CreateCommentDto {
+export class CreateReviewsDto {
   @ApiProperty({
     description: 'Contenu du commentaire',
-    example: 'Voici le contenu de mon premier post...',
+    example: '...',
   })
   @IsString()
   @IsNotEmpty()

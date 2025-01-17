@@ -12,6 +12,8 @@ import { MailDto } from './dto/mail.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ResetPasswordDto } from './dto/request-reset-code.dto';
 import { errors } from '~/common/util/error-messages';
+import { UploadApiResponse, v2 } from 'cloudinary';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +21,14 @@ export class AuthService {
     private jwtConfigService: JwtConfigService,
     private readonly usersService: UsersService,
     private readonly mailService: MailerService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    v2.config({
+      cloud_name: this.configService.get('secret.cloudinary_cloud_name'),
+      api_key: this.configService.get('secret.cloudinary_api_key'),
+      api_secret: this.configService.get('secret.cloudinary_api_secret'),
+    });
+  }
 
   async createUser(createAuthDto: CreateUserDto, response: Response) {
     const { password, ...dto } = createAuthDto;
@@ -75,6 +84,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.username,
+      image: user.image,
     };
 
     return session;
@@ -157,5 +167,23 @@ export class AuthService {
     });
 
     return { success: true, message: 'Password updated successfully' };
+  }
+
+  async uploadImage(filePath: string, user: RequestWithUser['user']): Promise<UploadApiResponse> {
+    try {
+      const result = await v2.uploader.upload(filePath, { folder: 'fintra' });
+      if (!result) {
+        throw new Error('Cloudinary returned an undefined upload result');
+      }
+      const updatedUser = { ...user, image: result.url };
+
+      await this.usersService.update(user.id, updatedUser);
+      return result;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Image upload failed: ${error.message}`);
+      }
+      throw new Error('Unexpected error occurred during image upload');
+    }
   }
 }

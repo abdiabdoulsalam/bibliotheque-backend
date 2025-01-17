@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { OrderDirectionEnum } from '../constants/order-direction.constant';
@@ -11,7 +11,7 @@ export class PageOptionsDto {
     type: Number,
     example: 1,
   })
-  @Type(/* istanbul ignore next */ () => Number)
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @IsOptional()
@@ -24,12 +24,20 @@ export class PageOptionsDto {
     type: Number,
     example: 10,
   })
-  @Type(/* istanbul ignore next */ () => Number)
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @Max(10000)
   @IsOptional()
-  limit?: number = 50;
+  limit?: number = 10;
+
+  @ApiPropertyOptional({
+    description: 'Search term for book title or author',
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  search?: string;
 
   @ApiPropertyOptional({
     enum: OrderDirectionEnum,

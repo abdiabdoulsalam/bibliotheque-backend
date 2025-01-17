@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ROLE } from 'src/common/enums/role.enum';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ROLE } from '~/common/enums/role.enum';
 import {
   BaseEntity,
   Column,
@@ -9,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { CommentEntity } from '~/comments/entities/comment.entity';
-import { PostEntity } from '~/posts/entities/post.entity';
+import { ReviewsEntity } from '~/reviews/entities/comment.entity';
+import { RatingEntity } from '~/rating/entities/rating.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -56,6 +56,20 @@ export class UserEntity extends BaseEntity {
   readonly role: ROLE;
 
   @ApiProperty({
+    description: 'Etat de la personne',
+    example: true,
+  })
+  @Column({ type: 'boolean', default: true })
+  active: boolean;
+
+  @ApiPropertyOptional({
+    description: "photo de profile d'un user",
+    example: 'image.jpg',
+  })
+  @Column({ type: 'text', nullable: true })
+  image?: string;
+
+  @ApiProperty({
     description: 'code',
     example: '123456',
   })
@@ -71,19 +85,19 @@ export class UserEntity extends BaseEntity {
 
   @ApiProperty({
     description: 'Liste des orders',
-    type: () => [PostEntity],
+    type: () => [ReviewsEntity],
     isArray: true,
   })
-  @OneToMany(() => PostEntity, (post) => post.user)
-  posts: PostEntity[];
+  @OneToMany(() => ReviewsEntity, (reviews) => reviews.user)
+  reviews: ReviewsEntity[];
 
   @ApiProperty({
-    description: 'Liste des orders',
-    type: () => [CommentEntity],
+    description: 'Liste of orders',
+    type: () => [RatingEntity],
     isArray: true,
   })
-  @OneToMany(() => CommentEntity, (comment) => comment.user)
-  comment: CommentEntity[];
+  @OneToMany(() => RatingEntity, (review) => review.user)
+  ratings: RatingEntity[];
 
   @ApiProperty({
     description: 'Date de creation de la personne',

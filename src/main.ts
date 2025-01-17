@@ -4,6 +4,7 @@ import { ClassSerializerInterceptor, ValidationPipe, VersioningType } from '@nes
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,13 +16,10 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.flushLogs();
   app.enableCors({
-    // TODO: move to environment variables
     origin: ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-    // TODO: learn more on http exposed headers
-    // exposedHeaders
   });
   app.enableVersioning({
     type: VersioningType.URI,
@@ -38,6 +36,14 @@ async function bootstrap() {
       skipMissingProperties: false,
     }),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('Books API')
+    .setDescription('The Books API description')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(String(configService.get('api.port')), configService.get('api.host'));
 }

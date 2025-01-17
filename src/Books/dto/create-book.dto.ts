@@ -1,10 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsString, Length } from "class-validator";
 
-export class CreatePostDto {
+export class CreateBookDto {
   @ApiProperty({
-    description: 'Titre du post',
-    example: 'Mon premier post',
+    description: 'Titre du livre',
+    example: 'Mon premier livre',
   })
   @IsString()
   @IsNotEmpty()
@@ -12,12 +12,13 @@ export class CreatePostDto {
   readonly title: string;
 
   @ApiProperty({
-    description: 'Contenu du post',
-    example: 'Voici le contenu de mon premier post...',
+    description: "Nom de l'auteur du livre",
+    example: 'victor hugo',
   })
   @IsString()
   @IsNotEmpty()
-  readonly content: string;
+  @Length(1, 32)
+  readonly author: string;
 
   @ApiProperty({
     description: "URL de l'image associée au post",

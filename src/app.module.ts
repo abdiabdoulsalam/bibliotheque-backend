@@ -8,12 +8,9 @@ import { DataSource } from 'typeorm';
 import { LoggerModule } from 'nestjs-pino';
 import { clc } from '@nestjs/common/utils/cli-colors.util';
 import { TerminusModule } from '@nestjs/terminus';
-import { HealthModule } from './health/health.module';
 import { HttpModule } from '@nestjs/axios';
-// import { ClickHouseModule } from '@depyronick/nestjs-clickhouse';
 import LogConfig from './config/log.config';
 import { DbHttpLoggerMiddleware } from './common/middleware/db-http-logger.middleware';
-// import { redisStore } from 'cache-manager-ioredis-yet';
 import { UsersModule } from './users/users.module';
 import CacheConfig from './config/cache.config';
 import { APP_GUARD } from '@nestjs/core';
@@ -25,43 +22,17 @@ import { JwtConfigModule } from './jwt/jwt.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
-import { PostsModule } from './posts/posts.module';
-import { CommentsModule } from './comments/comments.module';
+import { CommentsModule } from './reviews/comments.module';
+import { BooksModule } from './Books/books.module';
+import { RatingModule } from './rating/rating.module';
 
 @Module({
   imports: [
     AuthModule,
-    // CacheModule.registerAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: async (configService: ConfigService) => ({
-    //     store: await redisStore({
-    //       connectionName: 'CacheConnection',
-    //       host: configService.get('cache.host'),
-    //       port: configService.get('cache.port'),
-    //       username: configService.get('cache.username'),
-    //       password: configService.get('cache.password'),
-    //       ttl: configService.get('cache.ttl'),
-    //     }),
-    //     max: configService.get('cache.max'),
-    //   }),
-    //   isGlobal: true,
-    //   inject: [ConfigService],
-    // }),
-    // ClickHouseModule.registerAsync({
-    //   useFactory: (configService: ConfigService) => ({
-    //     host: configService.get('log.host'),
-    //     port: configService.get('log.port'),
-    //     username: configService.get('log.username'),
-    //     password: configService.get('log.password'),
-    //     database: configService.get('log.database'),
-    //   }),
-    //   inject: [ConfigService],
-    // }),
     ConfigModule.forRoot({
       load: [ApiConfig, CacheConfig, DbConfig, LogConfig, MailerConfig, SecretConfig],
       isGlobal: true,
     }),
-    HealthModule,
     HttpModule,
     JwtConfigModule,
     LoggerModule.forRootAsync({
@@ -113,7 +84,6 @@ import { CommentsModule } from './comments/comments.module';
       },
       inject: [ConfigService],
     }),
-    PostsModule,
     TerminusModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -138,6 +108,8 @@ import { CommentsModule } from './comments/comments.module';
     }),
     UsersModule,
     CommentsModule,
+    BooksModule,
+    RatingModule,
   ],
   controllers: [],
   providers: [
